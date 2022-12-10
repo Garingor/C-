@@ -7,5 +7,3 @@
 [lesson 4 - ](https://github.com/Garingor/C-Sharp/blob/main/Сollections/lesson4.cs)
 
 [lesson 5 - ](https://github.com/Garingor/C-Sharp/blob/main/Сollections/lesson5.cs)
-
-[lesson 6 - ](https://github.com/Garingor/C-Sharp/blob/main/Сollections/lesson6.cs)
