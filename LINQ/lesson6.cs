@@ -8,9 +8,9 @@ namespace ConsoleApp
     {
         static void Main()
         {
-            Barracks barracks = new Barracks();
+            Barracks barrack = new Barracks();
             
-            barracks.ShowSoldiers();
+            barrack.ShowSoldiers();
         }
 
         class Soldier
