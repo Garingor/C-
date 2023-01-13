@@ -48,8 +48,10 @@ namespace ConsoleApp
         private void ShowTopPlayerByLevel()
         {
             string message = "Топ 3 игрока по уровню";
+            int maxTopPlayers = 3;
             
-            List<Player> filteredPlayers = _players.OrderByDescending(player => player.Level).Take(3).ToList();
+            List<Player> filteredPlayers = _players.OrderByDescending(player => player.Level).
+                Take(maxTopPlayers).ToList();
             
             ShowPlayers(filteredPlayers, message);
         }
@@ -57,8 +59,10 @@ namespace ConsoleApp
         private void ShowTopPlayerByForce()
         {
             string message = "Топ 3 игрока по cиле";
+            int maxTopPlayers = 3;
             
-            List<Player> filteredPlayers = _players.OrderByDescending(player => player.Force).Take(3).ToList();
+            List<Player> filteredPlayers = _players.OrderByDescending(player => player.Force).
+                Take(maxTopPlayers).ToList();
             
             ShowPlayers(filteredPlayers, message);
         }
