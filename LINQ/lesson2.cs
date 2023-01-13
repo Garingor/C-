@@ -9,8 +9,13 @@ namespace ConsoleApp
         static void Main()
         {
             BorderService borderService = new BorderService();
+            string crime = "Антиправительственное";
             
-            borderService.AmnestyForPrisoners();
+            borderService.ShowСitizens();
+            
+            borderService.AmnestyForPrisoners(crime);
+            
+            borderService.ShowСitizens();
         }
     }
 
@@ -63,24 +68,20 @@ namespace ConsoleApp
             }
         }
 
-        public void AmnestyForPrisoners()
-        {
-            ShowСitizens(_prisoners);
-
-            _prisoners = _prisoners.Where(prisoner => prisoner.Crime != "Антиправительственное").ToList();
-
-            ShowСitizens(_prisoners);
-        }
-
-        private void ShowСitizens(List<Prisoner> prisoners)
+        public void ShowСitizens()
         {
             Console.WriteLine("_____________________________");
             
-            foreach (var prisoner in prisoners)
+            foreach (var prisoner in _prisoners)
             {
                 Console.WriteLine($"ФИО - {prisoner.FullName} Преступление - {prisoner.Crime}");
             }
             
+        }
+        
+        public void AmnestyForPrisoners(string crime)
+        {
+            _prisoners = _prisoners.Where(prisoner => prisoner.Crime != crime).ToList();
         }
     }
 }
