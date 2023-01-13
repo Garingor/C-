@@ -8,9 +8,9 @@ namespace ConsoleApp
     {
         static void Main()
         {
-            Barracks barrack = new Barracks();
+            Barracks barracks = new Barracks();
             
-            barrack.ShowSoldiers();
+            barracks.ShowSoldiers();
         }
 
         class Soldier
@@ -43,13 +43,13 @@ namespace ConsoleApp
             {
                 var soldiers = _soldiers.Select(soldier => new
                 {
-                    name = soldier.Name,
-                    rank = soldier.Rank
+                    Name = soldier.Name,
+                    Rank = soldier.Rank
                 });
                     
                 foreach (var soldier in soldiers)
                 {
-                    Console.WriteLine($"Имя - {soldier.name} Звание - {soldier.rank}");
+                    Console.WriteLine($"Имя - {soldier.Name} Звание - {soldier.Rank}");
                 }
             }
             
