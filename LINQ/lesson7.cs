@@ -14,16 +14,18 @@ namespace ConsoleApp
             AddRandomSoldiers(soldiers1);
             AddRandomSoldiers(soldiers2);
             
-            CombineSoldiers(soldiers1, soldiers2);
+            CombineSoldiers(ref soldiers1, ref soldiers2);
             
             ShowSoldiers(soldiers2);
         }
 
-        static void CombineSoldiers(List<Soldier> soldiers1, List<Soldier> soldiers2)
+        static void CombineSoldiers(ref List<Soldier> soldiers1, ref List<Soldier> soldiers2)
         {
-            soldiers2.AddRange(soldiers1.Where(soldier => soldier.Name.ToUpper().StartsWith("Б")));
+            var filteredSoldier = soldiers1.Where(soldier => soldier.Name.ToUpper().StartsWith("Б"));
             
-            soldiers1.RemoveAll(soldier => soldier.Name.ToUpper().StartsWith("Б"));
+            soldiers2 = soldiers2.Concat(filteredSoldier).ToList();
+            
+            soldiers1 = soldiers1.Except(filteredSoldier).ToList();
         }
         
         static void AddRandomSoldiers(List<Soldier> soldiers)
