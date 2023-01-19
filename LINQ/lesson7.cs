@@ -10,20 +10,22 @@ namespace ConsoleApp
         {
             List<Soldier> soldiers1 = new List<Soldier>();
             List<Soldier> soldiers2 = new List<Soldier>();
+            string wordStart = "Б";
             
             AddRandomSoldiers(soldiers1);
             AddRandomSoldiers(soldiers2);
             
-            CombineSoldiers(ref soldiers1, ref soldiers2);
+            CombineSoldiers(ref soldiers1, ref soldiers2, wordStart);
             
             ShowSoldiers(soldiers2);
         }
 
-        static void CombineSoldiers(ref List<Soldier> soldiers1, ref List<Soldier> soldiers2)
+        static void CombineSoldiers(ref List<Soldier> soldiers1, ref List<Soldier> soldiers2, string wordStart)
         {
-            var filteredSoldier = soldiers1.Where(soldier => soldier.Name.ToUpper().StartsWith("Б"));
+            var filteredSoldier = soldiers1.Where(soldier => 
+                soldier.Name.ToUpper().StartsWith(wordStart));
             
-            soldiers2 = soldiers2.Concat(filteredSoldier).ToList();
+            soldiers2 = soldiers2.Union(filteredSoldier).ToList();
             
             soldiers1 = soldiers1.Except(filteredSoldier).ToList();
         }
