@@ -8,9 +8,10 @@ namespace ConsoleApp
     {
         static void Main()
         {
+            int maxTopPlayers = 3;
             Game game = new Game();
             
-            game.ShowTopPlayers();
+            game.ShowTopPlayers(maxTopPlayers);
         }
     }
 
@@ -38,29 +39,27 @@ namespace ConsoleApp
             AddRandomPlayers(_players);
         }
 
-        public void ShowTopPlayers()
+        public void ShowTopPlayers(int maxTopPlayers)
         {
-            ShowTopPlayerByLevel();
+            ShowTopPlayerByLevel(maxTopPlayers);
             
-            ShowTopPlayerByForce();
+            ShowTopPlayerByForce(maxTopPlayers);
         }
 
-        private void ShowTopPlayerByLevel()
+        private void ShowTopPlayerByLevel(int maxTopPlayers)
         {
             string message = "Топ 3 игрока по уровню";
-            int maxTopPlayers = 3;
-            
+
             List<Player> filteredPlayers = _players.OrderByDescending(player => player.Level).
                 Take(maxTopPlayers).ToList();
             
             ShowPlayers(filteredPlayers, message);
         }
         
-        private void ShowTopPlayerByForce()
+        private void ShowTopPlayerByForce(int maxTopPlayers)
         {
             string message = "Топ 3 игрока по cиле";
-            int maxTopPlayers = 3;
-            
+
             List<Player> filteredPlayers = _players.OrderByDescending(player => player.Force).
                 Take(maxTopPlayers).ToList();
             
