@@ -20,7 +20,7 @@ namespace ConsoleApp
         private List<Cell> _cells;
         
         public DetailsBase(int handles, int pressureMeters, int brakeDisks, int headlights, 
-            int lights, int batteries, int windshields, int rearWindshields)
+            int lights, int batteries, int windShields, int rearWindshields)
         {
             _cells  = new List<Cell>
             {
@@ -30,7 +30,7 @@ namespace ConsoleApp
                 new Cell("Передняя фара", headlights),
                 new Cell("Задний габарит", lights),
                 new Cell("Аккумулятор", batteries),
-                new Cell("Лобовое стекло", windshields),
+                new Cell("Лобовое стекло", windShields),
                 new Cell("Заднее стекло", rearWindshields)
             };
         }
@@ -454,11 +454,11 @@ namespace ConsoleApp
 
     class Car
     {
-        private List<Cell> BrokeDetails;
+        private List<Cell> _brokeDetails;
         
         public Car()
         {
-            BrokeDetails = new List<Cell>();
+            _brokeDetails = new List<Cell>();
             AddRandomBrokeDetails();
         }
 
@@ -466,7 +466,7 @@ namespace ConsoleApp
         {
             List<Cell> brokeDetails = new List<Cell>();
 
-            foreach (Cell brokeDetail in BrokeDetails)
+            foreach (Cell brokeDetail in _brokeDetails)
             {
                 brokeDetails.Add(new Cell(brokeDetail.Detail.Name, brokeDetail.Count));
             }
@@ -476,7 +476,7 @@ namespace ConsoleApp
         
         public void ShowBrokeDetails()
         {
-            foreach (Cell brokeDetail in BrokeDetails)
+            foreach (Cell brokeDetail in _brokeDetails)
             {
                 Console.WriteLine($"поломка - {brokeDetail.Detail.Name}, " +
                                       $"количество деталей ремонта - {brokeDetail.Count}");
@@ -493,7 +493,7 @@ namespace ConsoleApp
 
             for (int i = 0; i < detailsNames.GetCountDetailsNames(); i++)
             {
-                BrokeDetails.Add(new Cell(detailsNames.GetDetailName(i), 
+                _brokeDetails.Add(new Cell(detailsNames.GetDetailName(i), 
                     random.Next(detailsNamesAndMinCount,detailsMaxCount[i])));
             }
         }
