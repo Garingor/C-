@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ConsoleApp
 {
@@ -9,73 +7,11 @@ namespace ConsoleApp
         static void Main()
         {
             CarService carService = new CarService();
-            
-            carService.Service();
+
+            carService.Work();
         }
     }
 
-    class DetailsBase
-    {
-        private List<string> _detailsNames;
-        private List<Cell> _cells;
-        
-        public DetailsBase(int handles, int pressureMeters, int brakeDisks, int headlights, 
-            int lights, int batteries, int windShields, int rearWindshields)
-        {
-            _cells  = new List<Cell>
-            {
-                new Cell("Дверная ручка", handles),
-                new Cell("Датчик давления в шине", pressureMeters),
-                new Cell("Тормозной диск", brakeDisks),
-                new Cell("Передняя фара", headlights),
-                new Cell("Задний габарит", lights),
-                new Cell("Аккумулятор", batteries),
-                new Cell("Лобовое стекло", windShields),
-                new Cell("Заднее стекло", rearWindshields)
-            };
-        }
-
-        public DetailsBase()
-        {
-            _detailsNames  = new List<string>
-            {
-                "Дверная ручка",
-                "Датчик давления в шине", 
-                "Тормозной диск", 
-                "Передняя фара", 
-                "Задний габарит",
-                "Аккумулятор", 
-                "Лобовое стекло", 
-                "Заднее стекло"
-            };
-        }
-
-        public int GetCountDetailsNames()
-        {
-            return _detailsNames.Count;
-        }
-        
-        public string GetDetailName(int i)
-        {
-            return _detailsNames[i];
-        }
-        
-        public int GetCount(string name)
-        {
-            int errorCode = -1;
-            
-            foreach (Cell cell in _cells)
-            {
-                if (cell.Detail.Name == name)
-                {
-                    return cell.Count;
-                }
-            }
-
-            return errorCode;
-        }
-    }
-    
     class CarService
     {
         private int _money;
@@ -83,164 +19,161 @@ namespace ConsoleApp
         private List<Car> _brokeCars;
         private int _payPerHour;
         private int _penalty;
-        
+
         public CarService()
         {
             _storage = new Storage();
             _brokeCars = new List<Car>();
             _payPerHour = 20;
             _penalty = 50;
+
             AddRandomMoney();
             AddRandomBrokeCars();
         }
 
-        public void Service()
+        public void Work()
         {
             int totalCost;
-            int allEarnMoney = 0;
-            int indexFirstCarForService = 0;
+            int indexCarForService = 0;
             
-            while (IsQueueNotEmpty())
+            //for(int idCurrentCarForService = _brokeCars.Count - 1; idCurrentCarForService >= 0; idCurrentCarForService--)
+            while(IsQueueNotEmpty())
             {
-                ShowBrokeCar();
-                totalCost = ShowRepairCost();
+                ShowBrokeCar(indexCarForService);
                 
-                if (IsAvailableDetails(_brokeCars[indexFirstCarForService]))
-                {
-                    totalCost -= FixCar(_brokeCars[indexFirstCarForService]);
-                    
-                    _money += totalCost;
-                    allEarnMoney += totalCost;
+                totalCost = FixCar(_brokeCars[indexCarForService]);
 
-                    Console.WriteLine($"Автосервис заработал с починки машины - {totalCost}");
-                }
-                else
-                {
-                    Console.WriteLine($"Деталей не оказалось на складе, автосервис выплатит штраф в размере {_penalty}");
+                Console.WriteLine($"Автосервис заработал с починки машины - {totalCost}");
+                
+                _money += totalCost;
 
-                    if (_money - _penalty > 0)
-                    {
-                        _money -= _penalty;
-                    }
-                    else
-                    {
-                        _money -= _penalty;
-                        Console.WriteLine("||автосервис банкрот и закрывается||");
-                        ClearQueue();
-                    }
+                if (_money < 0)
+                {
+                    Console.WriteLine("||Автосервис банкрот и закрывается||");
+                    ClearQueue();                 
                 }
+
+                Console.WriteLine($"Текущий счет автосервиса - {_money}\n");
             }
-            
-            Console.WriteLine($"автосервис всего заработал - {allEarnMoney}");
-            Console.WriteLine($"на счету автосервиса - {_money}");
+
+            Console.WriteLine($"\nИтоговый счет автосервиса - {_money}");
         }
-        
+
         private bool IsQueueNotEmpty()
         {
             return _brokeCars.Count > 0;
         }
-        
+
         private void ClearQueue()
         {
             _brokeCars.Clear();
-        }
-        
-        private void ShowBrokeCar()
-        {
-            int idFirstCarForService = 0;
-            
-            _brokeCars[idFirstCarForService].ShowBrokeDetails();
-        }
-        
-        private int ShowRepairCost()
-        {
-            int indexFirstCarForService = 0;
-            int detailsCost = CalculateDetailsCost(indexFirstCarForService);
-            int workCost = CalculateWorkCost(indexFirstCarForService);
-            int totalCost = detailsCost + workCost;
-            
-            Console.WriteLine($"стоимость деталей без учета работы мастера - {detailsCost}");
-            
-            Console.WriteLine($"стоимость работы мастера - {workCost}");
-            
-            Console.WriteLine($"общая стоимость работы - {totalCost}");
-
-            return totalCost;
-        }
-
-        private bool IsAvailableDetails(Car brokeCar)
-        {
-            List<Cell> brokeDetails = brokeCar.GetCopyBrokeDetails();
-
-            return _storage.IsAvailableDetails(brokeDetails);
         }
 
         private int FixCar(Car brokeCar)
         {
             int money = 0;
+            int workPrice;
             int costDetail;
-            List<Cell> brokeDetails = brokeCar.GetCopyBrokeDetails();
-            string nameDetail;
+            List<string> brokeDetails = brokeCar.GetCopyBrokeDetails();
+            Cell storageCell;
 
-            while (brokeDetails.Count > 0)
+            foreach (string brokeDetail in brokeDetails)
             {
-                foreach (Cell desiredDetail in brokeDetails.ToList())
+                storageCell = _storage.GetDetail(brokeDetail);
+                
+                if(storageCell == null)
+                {    
+                    Console.WriteLine($"Детали нет на складе, автосервис " +
+                                          $"выплатит штраф в размере {_penalty}");
+                    money -= _penalty;
+                }
+                else
                 {
-                    if (IsAvailableDetails(brokeCar))
+                    if (brokeDetail == storageCell.Detail.Name)
                     {
-                        nameDetail = _storage.GetDetail(desiredDetail.Detail.Name);
+                        costDetail = GetDetailPrice(storageCell.Detail.Name);
+                        money += costDetail;
+                        workPrice = GetWorkPrice(storageCell.Detail.Name);
+                        money += workPrice;
 
-                        Cell brokeDetail = SearchBrokeDetail(brokeDetails, nameDetail);
-
-                        if (brokeDetail != null)
-                        {
-                            brokeDetail.DecrementCountProduct();
-
-                            if (brokeDetail.Count == 0)
-                            {
-                                brokeDetails.Remove(brokeDetail);
-                            }
-                        }
-                        else
-                        {
-                            costDetail = GetDetailPrice(desiredDetail.Detail.Name);
-                            money += costDetail;
-                            
-                            Console.WriteLine($"Заменили не ту деталь - {nameDetail}, " +
-                                              $"клиенту возмещено за эту деталь - {costDetail}");
-                        }
+                        Console.WriteLine($"Заменили деталь - {storageCell.Detail.Name}, " +
+                                        $"Стоимость детали - {costDetail} " + 
+                                        $"Стоимость работы по установке детали - {workPrice}");
                     }
                     else
                     {
-                        Console.WriteLine($"Деталей не оказалось на складе, автосервис " +
-                                          $"выплатит штраф в размере {_penalty}");
-                        money -= _penalty;
+                        costDetail = GetDetailPrice(storageCell.Detail.Name);
+                        money -= costDetail;
                         
-                        _brokeCars.Remove(brokeCar);
-                        
-                        return money;
+                        Console.WriteLine($"Заменили не ту деталь - {storageCell.Detail.Name}, " +
+                                        $"клиенту возмещено за эту деталь - {costDetail}");
+                    }
+
+                    if(storageCell.Quantity == 0)
+                    {
+                        _storage.RemoveCellByName(storageCell.Detail.Name);
                     }
                 }
             }
 
-            _brokeCars.Remove(brokeCar);
-            
             return money;
         }
 
-        private Cell SearchBrokeDetail(List<Cell> brokeDetails, string nameDetail)
+        private int GetWorkPrice(string name)
         {
-            foreach (Cell brokeDetail in brokeDetails)
-            {
-                if (nameDetail == brokeDetail.Detail.Name)
-                {
-                    return brokeDetail;
-                }
-            }
+            int timeForHardWork = 3;
+            int timeForMediumWork = 2;
+            int timeForEasyWork = 1;
 
-            return null;
+            Dictionary<string, int> workPrice = new Dictionary<string, int>()
+            {
+                {"Дверная ручка", _payPerHour * timeForMediumWork},
+                {"Датчик давления в шине", _payPerHour * timeForEasyWork},
+                {"Тормозной диск", _payPerHour * timeForEasyWork},
+                {"Передняя фара", _payPerHour * timeForMediumWork},
+                {"Задний габарит",_payPerHour * timeForEasyWork},
+                {"Аккумулятор", _payPerHour * timeForHardWork}, 
+                {"Лобовое стекло", _payPerHour * timeForHardWork}, 
+                {"Заднее стекло", _payPerHour * timeForHardWork}
+            };
+
+            return workPrice[name];
         }
-        
+
+        private int GetDetailPrice(string name)
+        {
+            int priceCheapDetail = 100;
+            int priceExpensiveDetail = 200;
+
+            Dictionary<string, int> detailPrice = new Dictionary<string, int>()
+            {
+                {"Дверная ручка", priceCheapDetail},
+                {"Датчик давления в шине", priceCheapDetail},
+                {"Тормозной диск", priceExpensiveDetail},
+                {"Передняя фара", priceExpensiveDetail},
+                {"Задний габарит", priceExpensiveDetail},
+                {"Аккумулятор", priceCheapDetail}, 
+                {"Лобовое стекло", priceExpensiveDetail}, 
+                {"Заднее стекло",priceExpensiveDetail}
+            };
+            
+            return detailPrice[name];
+        }
+
+        private void ShowBrokeCar(int idCurrentCarForService)
+        {
+            _brokeCars[idCurrentCarForService].ShowBrokeDetails();
+        }
+
+        private void AddRandomMoney()
+        {
+            Random random = new Random();
+            int minMoney = 500;
+            int maxMoney = 5000;
+
+            _money = random.Next(minMoney, maxMoney);
+        }
+
         private void AddRandomBrokeCars()
         {
             Random random = new Random();
@@ -253,222 +186,206 @@ namespace ConsoleApp
                 _brokeCars.Add(new Car());
             }
         }
-        
-        private void AddRandomMoney()
-        {
-            Random random = new Random();
-            int minMoney = 500;
-            int maxMoney = 5000;
-
-            _money = random.Next(minMoney, maxMoney);
-        }
-        
-        private int GetDetailPrice(string name)
-        {
-            int priceCheapDetail = 100;
-            int priceExpensiveDetail = 200;
-
-            DetailsBase detailPrice = new DetailsBase(priceCheapDetail, priceCheapDetail, 
-                priceExpensiveDetail, priceExpensiveDetail, 
-                priceExpensiveDetail, priceCheapDetail, priceExpensiveDetail,
-                priceExpensiveDetail);
-            
-            return detailPrice.GetCount(name);
-        }
-
-        private int WorkPrice(string name, int count)
-        {
-            int timeForHardWork = 3;
-            int timeForMediumWork = 2;
-            int timeForEasyWork = 1;
-
-            DetailsBase workPrice = new DetailsBase(
-                _payPerHour * timeForMediumWork * count,
-                _payPerHour * timeForEasyWork * count,
-                _payPerHour * timeForEasyWork * count,
-                _payPerHour * timeForMediumWork * count,
-                _payPerHour * timeForEasyWork * count,
-                _payPerHour * timeForHardWork * count,
-                _payPerHour * timeForHardWork * count,
-                _payPerHour * timeForHardWork * count);
-            
-            return workPrice.GetCount(name);
-        }
-        
-        public int CalculateDetailsCost(int indexCarForService)
-        {
-            int cost = 0;
-            List<Cell> brokeDetails = _brokeCars[indexCarForService].GetCopyBrokeDetails();
-            
-            foreach (Cell brokeDetail in brokeDetails)
-            {
-                cost += GetDetailPrice(brokeDetail.Detail.Name) * brokeDetail.Count;
-            }
-
-            return cost;
-        }
-
-        public int CalculateWorkCost(int indexCarForService)
-        {
-            int cost = 0;
-            List<Cell> brokeDetails = _brokeCars[indexCarForService].GetCopyBrokeDetails();
-
-            foreach (Cell brokeDetail in brokeDetails)
-            {
-                cost += WorkPrice(brokeDetail.Detail.Name, brokeDetail.Count);
-            }
-            
-            return cost;
-        }
     }
 
     class Detail
     {
-        public string Name { get; private set; }
-       
         public Detail(string name)
         {
             Name = name;
         }
+        public string Name { get; private set; }
     }
-
+    
     class Cell
     {
-        public Detail Detail { get; private set; }
-        public int Count { get; private set; }
-    
-        public Cell(string name, int count)
+        public Cell(string name, int quantity)
         {
             Detail = new Detail(name);
-            Count = count;
+            Quantity = quantity;
         }
+        
+        public Detail Detail { get; private set; }
+        public int Quantity { get; private set; }
 
-        public void DecrementCountProduct()
+        public void DecrementQuantity()
         {
-            if (Count > 0)
-            {
-                Count--;
-            }
+            Quantity--;
         }
     }
-    
+
     class Storage
     {
+        private List<string> _detailsNames;
         private List<Cell> _cells;
 
         public Storage()
         {
+            _detailsNames = new List<string>()
+            {
+                "Дверная ручка",
+                "Датчик давления в шине",
+                "Тормозной диск",
+                "Передняя фара",
+                "Задний габарит",
+                "Аккумулятор",
+                "Лобовое стекло",
+                "Заднее стекло"
+            };
+
             _cells = new List<Cell>();
-            AddCells();
+
+            AddRandomCells();
         }
 
-        public bool IsAvailableDetails(List<Cell> brokeDetails)
+        public void RemoveCellByName(string name)
         {
-            bool isExitst = true;
-            
-            foreach (Cell brokeDetail in brokeDetails)
+            foreach(Cell cell in _cells)
             {
-                foreach (Cell cell in _cells)
+                if(cell.Detail.Name == name)
                 {
-                    if (cell.Detail.Name == brokeDetail.Detail.Name && cell.Count < brokeDetail.Count)
-                    {
-                        isExitst = false;
-                    }
-                }
-
-                if (isExitst == false)
-                {
-                    return isExitst;
+                    _cells.Remove(cell);
                 }
             }
-
-            return isExitst;
         }
 
-        public string GetDetail(string desiredNameDetail)
+        public Cell GetDetail(string desiredNameDetail)
         {
+            if(_cells == null)
+            {
+                return null;
+            }
+
             Random random = new Random();
             int minPercent = 1;
             int maxPercent = 101;
             int maxchance = 10;
             int index;
-            string nameDetail = "";
-            
+
             int chance = random.Next(minPercent,maxPercent);
 
             if (chance <= maxchance)
             {
-                index = random.Next(_cells.Count);
+                List<Cell> copyCells = GetCopyCells();
+                Cell copyCell = CopyCellByName(desiredNameDetail, _cells);
+                copyCells = RemoveCellByName(desiredNameDetail, copyCells);
+
+                index = random.Next(copyCells.Count);
+
+                _cells[index].DecrementQuantity();
                 
+                _cells.Add(new Cell(copyCell.Detail.Name, copyCell.Quantity));
+                
+                return new Cell(_cells[index].Detail.Name, _cells[index].Quantity);
+            }
+            else
+            {
                 foreach (Cell cell in _cells)
                 {
-                    if (index == 0)
+                    if(desiredNameDetail == cell.Detail.Name)
                     {
-                        cell.DecrementCountProduct();
-                        nameDetail = cell.Detail.Name;
+                        cell.DecrementQuantity();
                         
-                        if (cell.Count == 0)
-                        {
-                            _cells.Remove(cell);
-                        }
-                        
-                        return nameDetail;
+                        return new Cell(cell.Detail.Name, cell.Quantity);
                     }
+                }
+            }
 
-                    index--;
-                }
-            }
-            
-            foreach (Cell cell in _cells)
-            {
-                if (desiredNameDetail == cell.Detail.Name)
-                {
-                    cell.DecrementCountProduct();
-                    nameDetail = cell.Detail.Name;
-                        
-                    if (cell.Count == 0)
-                    {
-                        _cells.Remove(cell);
-                    }
-                    
-                    return nameDetail;
-                }
-            }
-            
-            return desiredNameDetail;
+            return null;
         }
-        
-        private void AddCells()
+
+        public void RemoveCell(Cell cell)
+        {
+            _cells.Remove(cell);
+        }
+
+        private List<Cell> RemoveCellByName(string name, List<Cell> cells)
+        {
+            foreach(Cell cell in cells)
+            {
+                if(cell.Detail.Name == name)
+                {
+                    cells.Remove(cell);
+
+                    return cells;
+                }
+            }
+
+            return null;
+        }
+
+        private Cell CopyCellByName(string name, List<Cell> cells)
+        {
+            foreach(Cell cell in cells)
+            {
+                if(cell.Detail.Name == name)
+                {
+                    return new Cell(cell.Detail.Name, cell.Quantity);
+                }
+            }
+
+            return null;
+        }
+
+        private void AddRandomCells()
         {
             Random random = new Random();
-            int maxCountDetails = 15;
+            int maxQuantity = 15;
 
-            DetailsBase detailsNames = new DetailsBase();
-
-            for (int i = 0; i < detailsNames.GetCountDetailsNames(); i++)
+            for (int i = 0; i < _detailsNames.Count; i++)
             {
-                _cells.Add(new Cell(detailsNames.GetDetailName(i), random.Next(maxCountDetails)));
+                _cells.Add(new Cell(_detailsNames[i], random.Next(maxQuantity)));
             }
+        }
+
+        private List<Cell> GetCopyCells()
+        {
+            List<Cell> cells = new List<Cell>();
+
+            foreach (var cell in _cells)
+            {
+                cells.Add(new Cell(cell.Detail.Name, cell.Quantity));
+            }
+
+            return cells;
         }
     }
 
     class Car
     {
-        private List<Cell> _brokeDetails;
+        private List<string> _brokeDetails;
+        private int _maxBrokeHandles;
+        private int _maxBrokePressureMeters;
+        private int _maxBrokeBrakeDisks;
+        private int _maxBrokeHeadlights;
+        private int _maxBrokeLights;
+        private int _maxBrokeBatteries;
+        private int _maxBrokeWindShields;
+        private int _maxBrokeRearWindshields;
         
         public Car()
         {
-            _brokeDetails = new List<Cell>();
+            _maxBrokeHandles = 4;
+            _maxBrokePressureMeters = 4;
+            _maxBrokeBrakeDisks = 4;
+            _maxBrokeHeadlights = 2;
+            _maxBrokeLights = 2;
+            _maxBrokeBatteries = 1;
+            _maxBrokeWindShields = 1;
+            _maxBrokeRearWindshields = 1;
+            
+            _brokeDetails = new List<string>();
+
             AddRandomBrokeDetails();
         }
 
-        public List<Cell> GetCopyBrokeDetails()
+        public List<string> GetCopyBrokeDetails()
         {
-            List<Cell> brokeDetails = new List<Cell>();
+            List<string> brokeDetails = new List<string>();
 
-            foreach (Cell brokeDetail in _brokeDetails)
+            foreach (var brokeDetail in _brokeDetails)
             {
-                brokeDetails.Add(new Cell(brokeDetail.Detail.Name, brokeDetail.Count));
+                brokeDetails.Add(brokeDetail);
             }
 
             return brokeDetails;
@@ -476,25 +393,33 @@ namespace ConsoleApp
         
         public void ShowBrokeDetails()
         {
-            foreach (Cell brokeDetail in _brokeDetails)
+            foreach (var brokeDetail in _brokeDetails)
             {
-                Console.WriteLine($"поломка - {brokeDetail.Detail.Name}, " +
-                                      $"количество деталей ремонта - {brokeDetail.Count}");
+                Console.WriteLine($"поломка - {brokeDetail}");
             }
         }
 
         private void AddRandomBrokeDetails()
         {
-            Random random = new Random();
-            int detailsNamesAndMinCount = 1;
-            List<int> detailsMaxCount = new List<int>{4, 4, 4, 2, 2, 2, 1, 1};
-            
-            DetailsBase detailsNames = new DetailsBase();
+            AddRandomCountDetails(_maxBrokeHandles, "Дверная ручка");
+            AddRandomCountDetails(_maxBrokePressureMeters, "Датчик давления в шине");
+            AddRandomCountDetails(_maxBrokeBrakeDisks, "Тормозной диск");
+            AddRandomCountDetails(_maxBrokeHeadlights, "Передняя фара");
+            AddRandomCountDetails(_maxBrokeLights, "Задний габарит");
+            AddRandomCountDetails(_maxBrokeBatteries, "Аккумулятор");
+            AddRandomCountDetails(_maxBrokeWindShields, "Лобовое стекло");
+            AddRandomCountDetails(_maxBrokeRearWindshields, "Заднее стекло");
+        }
 
-            for (int i = 0; i < detailsNames.GetCountDetailsNames(); i++)
+        private void AddRandomCountDetails(int _maxBrokeDetails, string detail)
+        {   
+            Random random = new Random();
+
+            int randomCountDetails = random.Next(_maxBrokeDetails);
+            
+            for (int i = 0; i < randomCountDetails; i++)
             {
-                _brokeDetails.Add(new Cell(detailsNames.GetDetailName(i), 
-                    random.Next(detailsNamesAndMinCount,detailsMaxCount[i])));
+                _brokeDetails.Add(detail);
             }
         }
     }
